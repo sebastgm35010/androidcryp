@@ -26,7 +26,6 @@ import org.cryptomator.domain.exception.NetworkConnectionException
 import org.cryptomator.domain.exception.authentication.AuthenticationException
 import org.cryptomator.domain.exception.hub.HubAuthenticationFailedException
 import org.cryptomator.domain.exception.hub.HubDeviceSetupRequiredException
-import org.cryptomator.domain.exception.hub.HubLicenseUpgradeRequiredException
 import org.cryptomator.domain.exception.hub.HubUserSetupRequiredException
 import org.cryptomator.domain.exception.hub.HubVaultAccessForbiddenException
 import org.cryptomator.domain.exception.hub.HubVaultIsArchivedException
@@ -363,7 +362,6 @@ class UnlockVaultPresenter @Inject constructor(
 					when (e) {
 						is HubDeviceSetupRequiredException -> view?.showCreateHubDeviceDialog(VaultModel(vault), unverifiedHubVaultConfig)
 						is HubUserSetupRequiredException -> view?.showHubUserSetupRequiredDialog(unverifiedHubVaultConfig)
-						is HubLicenseUpgradeRequiredException -> view?.showHubLicenseUpgradeRequiredDialog()
 						is HubVaultAccessForbiddenException -> view?.showHubVaultAccessForbiddenDialog()
 						is HubVaultIsArchivedException -> view?.showHubVaultIsArchivedDialog()
 						else -> {

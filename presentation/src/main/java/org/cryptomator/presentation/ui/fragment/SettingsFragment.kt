@@ -172,87 +172,18 @@ class SettingsFragment : PreferenceFragmentCompatLayout() {
 	private fun setupLicense() {
 		val licenseCategory = findPreference(LICENSE_ITEM_KEY) as PreferenceCategory?
 		val licensePref = findPreference(SharedPreferencesHandler.MAIL) as Preference?
-		licensePref?.isEnabled = true
-		when {
-			FlavorConfig.isPremiumFlavor -> {
-				licensePref?.let { pref ->
-					pref.title = getString(R.string.screen_settings_license_title_unlocked)
-					pref.summary = getString(R.string.screen_settings_license_summary_write_access)
-					pref.onPreferenceClickListener = null
-				}
-				removeUpdateCheck()
-			}
-			FlavorConfig.isFreemiumFlavor -> {
-				val uiState = LicenseEnforcer(sharedPreferencesHandler).evaluateUiState()
-				val hasSubscription = uiState.hasRunningSubscription
-				licensePref?.let { pref ->
-					if (uiState.hasPaidLicense) {
-						pref.title = getString(R.string.screen_settings_license_title_unlocked)
-						pref.summary = getString(R.string.screen_settings_license_summary_write_access)
-						pref.onPreferenceClickListener = null
-					} else {
-						pref.title = getString(R.string.screen_settings_license_title_unlock)
-						pref.summary = if (uiState.trialState.isActive) {
-							getString(R.string.screen_settings_license_summary_trial_expires, uiState.trialState.formattedExpirationDate)
-						} else {
-							getString(R.string.screen_settings_license_summary_tap_to_unlock)
-						}
-						pref.setOnPreferenceClickListener {
-							Intents.licenseCheckIntent().startActivity(activity() as ContextHolder)
-							true
-						}
-					}
-				}
-				licenseCategory?.let { category ->
-					val hasLifetimeLicense = sharedPreferencesHandler.licenseToken().isNotEmpty()
-					category.togglePreference(MANAGE_SUBSCRIPTION_KEY, hasSubscription) {
-						Preference(requireContext()).apply {
-							key = MANAGE_SUBSCRIPTION_KEY
-							title = getString(R.string.screen_settings_manage_subscription)
-							setOnPreferenceClickListener {
-								val url = "https://play.google.com/store/account/subscriptions" +
-									"?sku=${ProductInfo.PRODUCT_YEARLY_SUBSCRIPTION}" +
-									"&package=${requireContext().packageName}"
-								startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-								true
-							}
-						}
-					}
-					category.togglePreference(UPGRADE_LIFETIME_KEY, hasSubscription && !hasLifetimeLicense) {
-						Preference(requireContext()).apply {
-							key = UPGRADE_LIFETIME_KEY
-							title = getString(R.string.screen_settings_upgrade_to_lifetime)
-							setOnPreferenceClickListener {
-								Intents.licenseCheckIntent().startActivity(activity() as ContextHolder)
-								true
-							}
-						}
-					}
-				}
-				removeUpdateCheck()
-			}
-			else -> {
-				licensePref?.let { pref ->
-					val mail = sharedPreferencesHandler.mail()
-					if (mail.isEmpty()) {
-						pref.title = getString(R.string.screen_settings_license_title_unlock)
-						pref.summary = getString(R.string.screen_settings_license_summary_tap_to_unlock)
-						pref.setOnPreferenceClickListener {
-							Intents.licenseCheckIntent().startActivity(activity() as ContextHolder)
-							true
-						}
-					} else {
-						pref.title = getString(R.string.screen_settings_license_title_unlocked)
-						pref.summary = format(getString(R.string.screen_settings_license_summary_write_access_mail), mail)
-						pref.onPreferenceClickListener = null
-					}
-				}
-				if (FlavorConfig.isApkStoreFlavor) {
-					setupUpdateCheck()
-				} else {
-					removeUpdateCheck()
-				}
-			}
+		licensePref?.let { pref ->
+			pref.isEnabled = false
+			pref.title = getString(R.string.screen_settings_license_title_unlocked)
+			pref.summary = getString(R.string.screen_settings_license_summary_write_access)
+			pref.onPreferenceClickListener = null
+		}
+		licenseCategory?.removePreference(findPreference(MANAGE_SUBSCRIPTION_KEY))
+		licenseCategory?.removePreference(findPreference(UPGRADE_LIFETIME_KEY))
+		if (FlavorConfig.isApkStoreFlavor) {
+			setupUpdateCheck()
+		} else {
+			removeUpdateCheck()
 		}
 	}
 

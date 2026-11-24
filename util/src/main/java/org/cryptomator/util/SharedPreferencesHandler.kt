@@ -254,6 +254,18 @@ constructor(context: Context) : SharedPreferences.OnSharedPreferenceChangeListen
 		setPurchaseRevokedState(pending = false, reason = "")
 	}
 
+	fun clearLegacyPaymentState() {
+		defaultSharedPreferences.edit { editor ->
+			editor.remove(LICENSE_TOKEN)
+			editor.remove(TRIAL_EXPIRATION_DATE)
+			editor.remove(TRIAL_EXPIRED)
+			editor.remove(HAS_RUNNING_SUBSCRIPTION)
+			editor.remove(SALE_PROMO_DISMISSED_UNTIL)
+			editor.remove(PURCHASE_REVOKED_PENDING)
+			editor.remove(PURCHASE_REVOKED_REASON)
+		}
+	}
+
 	fun hasRunningSubscription(): Boolean {
 		return defaultSharedPreferences.getValue(HAS_RUNNING_SUBSCRIPTION, false)
 	}

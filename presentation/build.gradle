@@ -94,13 +94,6 @@ android {
 			dimension "version"
 		}
 
-		playstoreiap {
-			dimension "version"
-
-			applicationIdSuffix ".freemium"
-			resValue "string", "app_id", androidApplicationId + applicationIdSuffix
-		}
-
 		apkstore {
 			dimension "version"
 		}
@@ -123,27 +116,23 @@ android {
 
 	sourceSets {
 		playstore {
-			java.srcDirs = ['src/main/java', 'src/apiKey/java/', 'src/apkStorePlaystore/java/', 'src/nonplaystoreiap/java/']
-		}
-
-		playstoreiap {
-			java.srcDirs = ['src/main/java', 'src/apiKey/java/', 'src/apkStorePlaystore/java/', 'src/playstoreiap/java/']
+			java.srcDirs = ['src/main/java', 'src/apiKey/java/', 'src/apkStorePlaystore/java/']
 		}
 
 		apkstore {
-			java.srcDirs = ['src/main/java/', 'src/apiKey/java/', 'src/apkStorePlaystore/java/', 'src/nonplaystoreiap/java/']
+			java.srcDirs = ['src/main/java/', 'src/apiKey/java/', 'src/apkStorePlaystore/java/']
 		}
 
 		fdroid {
-			java.srcDirs = ['src/main/java/', 'src/apiKey/java/', 'src/fdroid/java/', 'src/fdroidLiteAccrescent/java/', 'src/nonplaystoreiap/java/']
+			java.srcDirs = ['src/main/java/', 'src/apiKey/java/', 'src/fdroid/java/', 'src/fdroidLiteAccrescent/java/']
 		}
 
 		lite {
-			java.srcDirs = ['src/main/java/', 'src/lite/java/', 'src/fdroidLiteAccrescent/java/', 'src/nonplaystoreiap/java/']
+			java.srcDirs = ['src/main/java/', 'src/lite/java/', 'src/fdroidLiteAccrescent/java/']
 		}
 
 		accrescent {
-			java.srcDirs = ['src/main/java/', 'src/apiKey/java/', 'src/accrescent/java/', 'src/fdroidLiteAccrescent/java/', 'src/nonplaystoreiap/java/']
+			java.srcDirs = ['src/main/java/', 'src/apiKey/java/', 'src/accrescent/java/', 'src/fdroidLiteAccrescent/java/']
 		}
 	}
 
@@ -169,8 +158,8 @@ android {
 
 dependencies {
 	def dependencies = rootProject.ext.dependencies
-	def cloudFlavors = ['playstore', 'playstoreiap', 'apkstore', 'fdroid', 'accrescent']
-	def googleFlavors = ['playstore', 'playstoreiap', 'apkstore']
+	def cloudFlavors = ['playstore', 'apkstore', 'fdroid', 'accrescent']
+	def googleFlavors = ['playstore', 'apkstore']
 	def addToFlavors = { flavors, dep, Closure config = null ->
 		flavors.each { flavor ->
 			if (config) {
@@ -242,8 +231,6 @@ dependencies {
 	compileOnly dependencies.javaxAnnotation
 	implementation dependencies.zxcvbn
 	implementation dependencies.rxBinding
-
-	playstoreiapImplementation dependencies.billing
 
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 

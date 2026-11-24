@@ -47,10 +47,9 @@ class UnlockHubVault {
 		}
 		HubRepository.VaultAccess vaultAccess = hubRepository.getVaultAccess(unverifiedVaultConfig, accessToken);
 		HubRepository.DeviceDto device = hubRepository.getDevice(unverifiedVaultConfig, accessToken);
-		boolean writeAllowed = vaultAccess.getSubscriptionState() == HubRepository.SubscriptionState.ACTIVE;
 		Vault targetVault = Vault.aCopyOf(vault)
 				.withHubVault(true)
-				.withHubPaidLicense(writeAllowed)
+				.withHubPaidLicense(true)
 				.build();
 		return cloudRepository.unlock(targetVault, unverifiedVaultConfig, vaultAccess.getVaultKeyJwe(), device.getUserPrivateKey(), cancelledFlag);
 	}

@@ -116,8 +116,8 @@ public class UnlockHubVaultTest {
 	}
 
 	@Test
-	@DisplayName("INACTIVE subscription sets hubPaidLicense to false")
-	public void testInactiveSubscriptionSetsHubPaidLicenseFalse() throws BackendException {
+	@DisplayName("INACTIVE subscription no longer restricts Hub writes")
+	public void testInactiveSubscriptionStillAllowsHubWrites() throws BackendException {
 		setupHubResponses(1, HubRepository.SubscriptionState.INACTIVE);
 		when(cloudRepository.unlock(Mockito.any(Vault.class), Mockito.eq(unverifiedVaultConfig), Mockito.eq(VAULT_KEY_JWE), Mockito.eq(USER_PRIVATE_KEY), Mockito.any(Flag.class))) //
 				.thenReturn(mock(Cloud.class));
@@ -127,7 +127,7 @@ public class UnlockHubVaultTest {
 
 		ArgumentCaptor<Vault> vaultCaptor = ArgumentCaptor.forClass(Vault.class);
 		verify(cloudRepository).unlock(vaultCaptor.capture(), Mockito.eq(unverifiedVaultConfig), Mockito.eq(VAULT_KEY_JWE), Mockito.eq(USER_PRIVATE_KEY), Mockito.any(Flag.class));
-		assertThat(vaultCaptor.getValue().hasHubPaidLicense(), is(false));
+		assertThat(vaultCaptor.getValue().hasHubPaidLicense(), is(true));
 	}
 
 	@Test

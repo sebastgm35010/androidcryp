@@ -133,9 +133,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(ActivityWelcomeBind
 	private fun setupPages() {
 		pages.clear()
 		pages.add(FragmentPage.Intro)
-		if (!FlavorConfig.isPremiumFlavor) {
-			pages.add(FragmentPage.License)
-		}
 		pages.add(FragmentPage.Notifications)
 		if (!keyguardManager.isDeviceSecure) {
 			pages.add(FragmentPage.ScreenLock)

@@ -5,8 +5,8 @@ object FlavorConfig {
 	/** The premium (paid) Play Store edition ships with full access, so license enforcement is bypassed. */
 	val isPremiumFlavor: Boolean = BuildConfig.FLAVOR == "playstore"
 
-	/** The freemium IAP (in-app purchase) flavor distributed on Google Play. */
-	val isFreemiumFlavor: Boolean = BuildConfig.FLAVOR == "playstoreiap"
+	/** No build flavor uses in-app purchases. */
+	val isFreemiumFlavor: Boolean = false
 
 	/** The APK Store edition (website direct download). Supports self-update checks. */
 	val isApkStoreFlavor: Boolean = BuildConfig.FLAVOR == "apkstore"

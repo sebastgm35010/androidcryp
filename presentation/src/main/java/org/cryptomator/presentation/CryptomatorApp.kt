@@ -25,15 +25,8 @@ import org.cryptomator.presentation.logging.ReleaseLogger
 import org.cryptomator.presentation.service.AutoUploadNotification
 import org.cryptomator.presentation.service.AutoUploadService
 import org.cryptomator.presentation.service.CryptorsService
-import org.cryptomator.presentation.service.IapBillingService
-import org.cryptomator.presentation.service.PendingCallbackQueue
-import org.cryptomator.presentation.service.ProductInfo
-import org.cryptomator.presentation.service.PurchaseRevokedToastObserver
-import org.cryptomator.presentation.service.RestoreOutcome
-import org.cryptomator.util.FlavorConfig
 import org.cryptomator.util.NoOpActivityLifecycleCallbacks
 import org.cryptomator.util.SharedPreferencesHandler
-import java.lang.ref.WeakReference
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 import io.reactivex.plugins.RxJavaPlugins
@@ -51,15 +44,11 @@ class CryptomatorApp : Application(), HasComponent<ApplicationComponent> {
 	@Volatile
 	private var autoUploadServiceBinder: AutoUploadService.Binder? = null
 
-	@Volatile
-	private var iapBillingServiceBinder: IapBillingService.Binder? = null
-
-	private val pendingProductDetailsCallbacks = PendingCallbackQueue<List<ProductInfo>>()
-
 	override fun onCreate() {
 		super.onCreate()
 		setupLogging()
 		val sharedPreferencesHandler = SharedPreferencesHandler(applicationContext())
+		sharedPreferencesHandler.clearLegacyPaymentState()
 
 		@Suppress("KotlinConstantConditions") //
 		val flavor = when (BuildConfig.FLAVOR) {
@@ -67,7 +56,6 @@ class CryptomatorApp : Application(), HasComponent<ApplicationComponent> {
 			"fdroid" -> "F-Droid Edition"
 			"lite" -> "F-Droid Main Repo Edition"
 			"accrescent" -> "Accrescent Edition"
-			"playstoreiap" -> "IAP Google Play Edition"
 			else -> "Google Play Edition"
 		}
 		Timber.tag("App").i(
@@ -82,9 +70,6 @@ class CryptomatorApp : Application(), HasComponent<ApplicationComponent> {
 		applicationComponent.vaultDocumentEvents().addListener(CryptomatorDocumentsProvider.ChangeNotifier(contentResolver) { applicationComponent.documentMetadataCache() })
 		launchServices()
 		registerActivityLifecycleCallbacks(serviceNotifier)
-		if (FlavorConfig.isFreemiumFlavor) {
-			registerActivityLifecycleCallbacks(PurchaseRevokedToastObserver(sharedPreferencesHandler))
-		}
 		AppCompatDelegate.setDefaultNightMode(sharedPreferencesHandler.screenStyleMode)
 		cleanupCache()
 
@@ -96,11 +81,6 @@ class CryptomatorApp : Application(), HasComponent<ApplicationComponent> {
 			startCryptorsService()
 		} catch (e: IllegalStateException) {
 			Timber.tag("App").e(e, "Failed to launch cryptors service")
-		}
-		try {
-			startIapBillingService()
-		} catch (e: IllegalStateException) {
-			Timber.tag("App").e(e, "Failed to launch IAP billing service")
 		}
 		try {
 			startAutoUploadService()
@@ -126,64 +106,6 @@ class CryptomatorApp : Application(), HasComponent<ApplicationComponent> {
 				appCryptors.removeDelegate()
 			}
 		}, BIND_AUTO_CREATE)
-	}
-
-	private fun startIapBillingService() {
-		if (!FlavorConfig.isFreemiumFlavor) {
-			Timber.tag("App").d("IAP billing service skipped for flavor %s", BuildConfig.FLAVOR)
-			return
-		}
-		bindService(Intent(this, IapBillingService::class.java), object : ServiceConnection {
-			override fun onServiceConnected(name: ComponentName, service: IBinder) {
-				Timber.tag("App").i("IAP Billing service connected")
-				iapBillingServiceBinder = service as IapBillingService.Binder
-				iapBillingServiceBinder?.init(_applicationContext)
-				drainPendingProductDetailsCallbacks()
-			}
-
-			override fun onServiceDisconnected(name: ComponentName) {
-				Timber.tag("App").i("IAP Billing service disconnected")
-				pendingProductDetailsCallbacks.markNotReady()
-				iapBillingServiceBinder = null
-			}
-		}, BIND_AUTO_CREATE)
-	}
-
-	fun launchPurchaseFlow(activity: WeakReference<Activity>, productId: String) {
-		if (FlavorConfig.isFreemiumFlavor) {
-			iapBillingServiceBinder?.startPurchaseFlow(activity, productId)
-		}
-	}
-
-	fun queryProductDetails(callback: (List<ProductInfo>) -> Unit) {
-		if (!FlavorConfig.isFreemiumFlavor) {
-			callback(emptyList())
-			return
-		}
-		if (!pendingProductDetailsCallbacks.enqueueUnlessReady(callback)) {
-			iapBillingServiceBinder?.queryProductDetails(callback)
-		}
-	}
-
-	private fun drainPendingProductDetailsCallbacks() {
-		val snapshot = pendingProductDetailsCallbacks.markReadyAndDrain() ?: return
-		iapBillingServiceBinder?.queryProductDetails { products ->
-			snapshot.forEach { it(products) }
-		}
-	}
-
-	fun restorePurchases(onComplete: (RestoreOutcome) -> Unit = {}) {
-		if (!FlavorConfig.isFreemiumFlavor) {
-			onComplete(RestoreOutcome.NOTHING_TO_RESTORE)
-			return
-		}
-		val binder = iapBillingServiceBinder
-		if (binder == null) {
-			Timber.tag("App").w("restorePurchases called before IAP binder ready")
-			onComplete(RestoreOutcome.FAILED())
-			return
-		}
-		binder.restorePurchases(onComplete)
 	}
 
 	private fun startAutoUploadService() {
@@ -280,12 +202,6 @@ class CryptomatorApp : Application(), HasComponent<ApplicationComponent> {
 			// intra-app navigation, so the counter never transiently hits 0 on screen transitions.
 			val newCount = startedActivities.incrementAndGet()
 			updateService(newCount)
-			if (newCount == 1 && FlavorConfig.isFreemiumFlavor) {
-				// Refresh purchases on background→foreground so a refund or lapsed subscription is detected.
-				// The coordinator persists revoke state via SharedPreferences; PurchaseRevokedToastObserver picks it up
-				// on the next activity resume. Outcome is ignored here because auto-refresh only drives the revoke toast.
-				restorePurchases()
-			}
 		}
 
 		override fun onActivityStopped(activity: Activity) {

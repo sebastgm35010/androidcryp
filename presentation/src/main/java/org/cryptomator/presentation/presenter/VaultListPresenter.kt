@@ -119,16 +119,6 @@ class VaultListPresenter @Inject constructor( //
 			return
 		}
 
-		if (FlavorConfig.isFreemiumFlavor) {
-			val alreadyKnownExpired = sharedPreferencesHandler.isTrialExpired()
-			val trialState = licenseEnforcer.evaluateTrialState()
-			if (!alreadyKnownExpired && trialState.isExpired && !licenseEnforcer.hasPaidLicense()) {
-				view?.showDialog(TrialExpiredDialog.newInstance())
-			}
-			// Invokes the listener right away, so this also evaluates the sale promo on resume.
-			sharedPreferencesHandler.addLicenseChangedListeners(licenseChangeListener)
-		}
-
 		showLicenseLostDialogIfNeeded()
 
 		createdVaultAwaitingRecoveryKeyDialog?.let {

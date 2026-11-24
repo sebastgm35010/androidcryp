@@ -77,7 +77,7 @@ class LicenseCheckActivity : BaseActivity<ActivityLicenseCheckBinding>(ActivityL
 	}
 
 	override fun setupView() {
-		rebindForIntent()
+		finish()
 	}
 
 	override fun onNewIntent(intent: Intent) {

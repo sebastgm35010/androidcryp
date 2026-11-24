@@ -58,10 +58,6 @@ android {
 			dimension "version"
 		}
 
-		playstoreiap {
-			dimension "version"
-		}
-
 		apkstore {
 			dimension "version"
 		}
@@ -88,10 +84,6 @@ android {
 			java.srcDirs = ['src/main/java/', 'src/apiKey/java/', 'src/apkStorePlaystore/java/']
 		}
 
-		playstoreiap {
-			java.srcDirs = ['src/main/java/', 'src/apiKey/java/', 'src/apkStorePlaystore/java/']
-		}
-
 		apkstore {
 			java.srcDirs = ['src/main/java/', 'src/apiKey/java/', 'src/apkStorePlaystore/java/']
 		}
@@ -108,7 +100,7 @@ android {
 			java.srcDirs = ['src/main/java/', 'src/apiKey/java/', 'src/fdroidAccrescent/java/']
 		}
 
-		['testPlaystore', 'testPlaystoreiap', 'testApkstore', 'testFdroid', 'testAccrescent'].each { testSourceSet ->
+		['testPlaystore', 'testApkstore', 'testFdroid', 'testAccrescent'].each { testSourceSet ->
 			getByName(testSourceSet).java.srcDirs += 'src/testApiKey/java/'
 		}
 	}
@@ -133,8 +125,8 @@ configurations.all {
 
 dependencies {
 	def dependencies = rootProject.ext.dependencies
-	def cloudFlavors = ['playstore', 'playstoreiap', 'apkstore', 'fdroid', 'accrescent']
-	def googleFlavors = ['playstore', 'playstoreiap', 'apkstore']
+	def cloudFlavors = ['playstore', 'apkstore', 'fdroid', 'accrescent']
+	def googleFlavors = ['playstore', 'apkstore']
 	def addToFlavors = { flavors, dep, Closure config = null ->
 		flavors.each { flavor ->
 			if (config) {

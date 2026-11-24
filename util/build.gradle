@@ -34,10 +34,6 @@ android {
 			dimension "version"
 		}
 
-		playstoreiap {
-			dimension "version"
-		}
-
 		apkstore {
 			dimension "version"
 		}

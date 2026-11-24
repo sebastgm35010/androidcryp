@@ -2,7 +2,6 @@ package org.cryptomator.data.repository;
 
 import android.content.Context;
 
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.google.common.io.BaseEncoding;
 import com.nimbusds.jose.JWEObject;
 
@@ -14,12 +13,10 @@ import org.cryptomator.domain.exception.FatalBackendException;
 import org.cryptomator.domain.exception.hub.HubDeviceAlreadyRegisteredForOtherUserException;
 import org.cryptomator.domain.exception.hub.HubDeviceSetupRequiredException;
 import org.cryptomator.domain.exception.hub.HubInvalidSetupCodeException;
-import org.cryptomator.domain.exception.hub.HubLicenseUpgradeRequiredException;
 import org.cryptomator.domain.exception.hub.HubUserSetupRequiredException;
 import org.cryptomator.domain.exception.hub.HubVaultAccessForbiddenException;
 import org.cryptomator.domain.exception.hub.HubVaultIsArchivedException;
 import org.cryptomator.domain.repository.HubRepository;
-import org.cryptomator.domain.usecases.AndroidLicenseVerifier;
 import org.cryptomator.util.crypto.HubDeviceCryptor;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -75,7 +72,7 @@ public class HubRepositoryImpl implements HubRepository {
 						throw new FatalBackendException("Failed to load JWE, response code good but no body");
 					}
 				case HttpURLConnection.HTTP_PAYMENT_REQUIRED:
-					throw new HubLicenseUpgradeRequiredException();
+					throw new FatalBackendException("The Hub server is still enforcing a paid-license gate");
 				case HttpURLConnection.HTTP_FORBIDDEN:
 					throw new HubVaultAccessForbiddenException();
 				case HttpURLConnection.HTTP_GONE:
@@ -91,25 +88,7 @@ public class HubRepositoryImpl implements HubRepository {
 	}
 
 	private HubRepository.SubscriptionState resolveSubscriptionState(Response response) {
-		String androidLicense = response.header("Hub-Android-License");
-		if (androidLicense == null || androidLicense.isEmpty()) {
-			return subscriptionStateFromHeader(response.header("Hub-Subscription-State"));
-		}
-		return isAndroidLicenseValid(androidLicense) ? HubRepository.SubscriptionState.ACTIVE : HubRepository.SubscriptionState.INACTIVE;
-	}
-
-	private boolean isAndroidLicenseValid(String androidLicense) {
-		try {
-			AndroidLicenseVerifier.verify(androidLicense, AndroidLicenseVerifier.ANDROID_PUB_KEY);
-			return true;
-		} catch (JWTVerificationException | NoSuchAlgorithmException | InvalidKeySpecException | FatalBackendException e) {
-			Timber.tag("HubRepositoryImpl").e(e, "Failed to validate Android license retrieved from Hub");
-			return false;
-		}
-	}
-
-	private HubRepository.SubscriptionState subscriptionStateFromHeader(String subscriptionHeader) {
-		return "ACTIVE".equalsIgnoreCase(subscriptionHeader) ? HubRepository.SubscriptionState.ACTIVE : HubRepository.SubscriptionState.INACTIVE;
+		return HubRepository.SubscriptionState.ACTIVE;
 	}
 
 	@Override

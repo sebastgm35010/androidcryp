@@ -270,10 +270,6 @@
 			android:enabled="true" />
 
 		<service
-			android:name=".service.IapBillingService"
-			android:enabled="true" />
-
-		<service
 			android:name=".service.PhotoContentJob"
 			android:exported="true"
 			android:permission="android.permission.BIND_JOB_SERVICE" />
